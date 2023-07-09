@@ -3,39 +3,6 @@ from payoff import *
 from rnn_function import *
 from global_utilities import *
 
-#############################################
-# Load dataset
-def load_dataset():
-    directory = "Results/option=" + option_type[0] + "&" + option_type[1] + "&" + option_type[2] + "_d=" + str(
-                d) + "_X0=" + str(x0).replace(".", "p") + "_N=" + str(N) + "_seed=" + str(global_seed) + "/"
-    print("\n directory: ", directory, "\n")
-    try:
-        Control = torch.tensor(np.load(directory + "control_exact.npy"), dtype=torch_datatype)
-        #print(Control.shape)
-        Control = Control[:simulation_size, :, :]
-    except:
-        Control = 0
-    try:
-        Value = torch.tensor(np.load(directory + "Y_exact.npy"), dtype=torch_datatype)
-        Value = Value[:simulation_size, :, :]
-    except:
-        Value = 0
-
-    try:
-        Delta = torch.tensor(np.load(directory + "eff_gradY_exact.npy"), dtype=torch_datatype)
-        Delta = Delta[:simulation_size, :, :, 0]
-    except:
-        Delta = 0
-    
-    S = []
-    for n in range(N + 1):
-        Xn = torch.tensor(np.load(directory + "X" + str(n) + ".npy"), dtype=torch_datatype)
-        Xn = Xn[:simulation_size, :]
-        S.append(Xn.unsqueeze(1)) # we expand dim 1 to use dataloader
-    
-    S = torch.cat(S, dim=1)
-    return S, Control, Value, Delta
-
 ###############################
 # index 0 is time, index 1 is state
 # the input dimensions to RNN requires dim of (seq_len, batch_size, input_size)
