@@ -4,7 +4,7 @@ from rnn_function import *
 from global_utilities import *
 from simulation import *
 
-S = load_price_data()
+S = load_price_data() #load_price_data() is not included look at README.md
 
 print(f"Simulation size: {S.shape[0]}")
 Value = []
