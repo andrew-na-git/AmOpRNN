@@ -4,7 +4,8 @@ from rnn_function import *
 from global_utilities import *
 from simulation import *
 
-S, Control_exact, Value_exact, Delta_exact = load_dataset()
+S = load_price_data()
+
 print(f"Simulation size: {S.shape[0]}")
 Value = []
 Delta = []
