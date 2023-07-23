@@ -194,8 +194,8 @@ def predict_rnn(rnn, loader):
             dpds[1:,:,k] = delta_rnn(in_d,hd,disc_d[:,:,k])
         
         idx = (u[1:] > p[1:])
-        value[1:] = u[1:]*(idx) + p[1:]*(~idx)
-        delta[1:] = z[1:]*(idx) + dpds[1:]*(~idx)
+        value[1:] = u[1:]*(idx) + disc_v[1:]*(~idx)
+        delta[1:] = z[1:]*(idx) + disc_d[1:]*(~idx)
         
         print(value[-1].mean(0),delta[-1].mean(0))
 
