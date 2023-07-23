@@ -155,6 +155,8 @@ def predict_rnn(rnn, loader):
         cp_delta = torch.empty_like(z)
         disc_v = torch.empty_like(z[1:])
         disc_d = torch.empty_like(z[1:])
+        disc_p = torch.empty_like(z[1:])
+        disc_delta = torch.empty_like(z[1:])
 
         # construct values at T
         value[0] = u[0]
@@ -166,6 +168,9 @@ def predict_rnn(rnn, loader):
         disc_v[0] = u[0]
         disc_d[0] = z[0]
 
+        disc_p[0] = disc_v[0]
+        disc_delta[0] = disc_d[0]
+
         p[0] = u[0]
         dpds[0] = z[0]
 
@@ -176,11 +181,6 @@ def predict_rnn(rnn, loader):
                 cp[q] = math.exp(-r*dt)*u[t]
                 cp_delta[q] = math.exp(-r*dt)*z[t]*(s[t]/s[q])
             if q > 1:
-                #_,stop_idx = torch.max(u[:q+1].mean(1),0)
-                #for k in range(eff_d):
-                    #delta_tau = q - stop_idx[k]
-                    #cp[q,:,k] = math.exp(-r*delta_tau*dt)*u[int(stop_idx[k]),:,k]
-                    #cp_delta[q,:,k] = math.exp(-r*delta_tau*dt)*(z[int(stop_idx[k]),:,k]*(s[int(stop_idx[k]),:,k]/s[q,:,k]))
                 disc_v[t] = math.exp(-r*(q-1)*dt)*cp[1]
                 disc_d[t] = math.exp(-r*(q-1)*dt)*cp_delta[1]*(s[1]/s[q])
 
@@ -193,9 +193,15 @@ def predict_rnn(rnn, loader):
             hd = delta_rnn.init_hidden(z[1,:,k].unsqueeze(-1))
             dpds[1:,:,k] = delta_rnn(in_d,hd,disc_d[:,:,k])
         
-        idx = (u[1:] > p[1:])
-        value[1:] = u[1:]*(idx) + disc_v[1:]*(~idx)
-        delta[1:] = z[1:]*(idx) + disc_d[1:]*(~idx)
+        for t in range(seq_len):
+            q = t+1
+            
+            idx = (u[q] > p[q])
+            disc_p[q,:,k] = math.exp(-r*dt)*value[q-1,:,k]
+            disc_delta[q,:,k] = math.exp(-r*dt)*(delta[q-1,:,k])
+        
+            value[q] = u[q]*(idx) + disc_p[q]*(~idx)
+            delta[q] = z[q]*(idx) + disc_delta[q]*(~idx)
         
         print(value[-1].mean(0),delta[-1].mean(0))
 
